@@ -31,8 +31,10 @@ button{cursor:pointer}
 /* shell */
 .shell{display:grid;grid-template-columns:230px 1fr;min-height:100%}
 .side{background:linear-gradient(180deg,#e0f2d9 0%,#f6fbf3 60%,#ffffff 100%);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-.brand{padding:20px 18px 14px}
-.brand .a{font-family:"Bodoni 72","Didot","Playfair Display",Georgia,serif;font-size:30px;font-style:italic;font-weight:600;line-height:1}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 12px 14px;text-align:center}
+.btxt{text-align:center;min-width:0}
+.blogo{width:48px;height:48px;border-radius:10px;object-fit:contain;background:#fff;border:1px solid var(--line);flex:none}
+.brand .a{font-family:"Bodoni 72","Didot","Playfair Display",Georgia,serif;font-size:28px;font-style:italic;font-weight:600;line-height:1}
 .brand .b{font-size:12.5px;color:var(--muted);margin-top:4px;letter-spacing:.3px}
 .tape{height:20px;background:var(--tape);position:relative;border-top:1px solid rgba(0,0,0,.15);border-bottom:1px solid rgba(0,0,0,.15);
   background-image:
@@ -143,6 +145,14 @@ textarea{resize:vertical}
 .sched .r.late{background:var(--badbg)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;z-index:80;max-width:90vw}
 
+/* pictures */
+.pic{width:110px;height:110px;border-radius:12px;border:1px dashed var(--line);background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;text-align:center}
+.pic img{width:100%;height:100%;object-fit:cover}
+.picrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none;background:var(--surface2);border:1px solid var(--line);cursor:zoom-in}
+.thumb.ph{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:var(--accent);font-family:"Bodoni 72",Georgia,serif;cursor:default}
+.tile .timg{width:100%;height:78px;border-radius:8px;object-fit:cover;background:var(--surface2);display:block}
+.tile .timg.ph{display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--accent);font-family:"Bodoni 72",Georgia,serif}
 /* login */
 body.locked .shell{display:none}
 .auth{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow:auto}
@@ -193,10 +203,11 @@ body.locked .shell{display:none}
   .stats{grid-template-columns:1fr 1fr;gap:10px}
   .stat{padding:12px 14px}
   .stat .n{font-size:22px}
-  .mobilebrand{display:block!important}
+  .mobilebrand{display:flex!important}
   .formgrid{grid-template-columns:1fr}
 }
-.mobilebrand{display:none;margin-bottom:14px}
+.mobilebrand{display:none;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
+.mobilebrand .blogo{width:44px;height:44px}
 .mobilebrand .a{font-family:"Bodoni 72","Didot",Georgia,serif;font-style:italic;font-size:24px;font-weight:600}
 .mobilebrand .b{font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -205,13 +216,13 @@ body.locked .shell{display:none}
 <body class="locked">
 <div class="shell">
   <aside class="side">
-    <div class="brand"><div class="a">Annie's</div><div class="b">Fashions and Design</div></div>
+    <div class="brand"><img class="blogo" alt=""><div class="btxt"><div class="a">Annie's</div><div class="b">Fashions and Design</div></div></div>
     <div class="tape"></div>
     <nav class="menu" id="nav"></nav>
     <div class="foot"><div class="who" style="font-weight:600;color:var(--ink);margin-bottom:4px"></div>Works offline. Data stays on this device.</div>
   </aside>
   <main>
-    <div class="mobilebrand"><div class="a">Annie's</div><div class="b">Fashions and Design</div><div class="b who"></div></div>
+    <div class="mobilebrand"><img class="blogo" alt=""><div class="btxt"><div class="a">Annie's</div><div class="b">Fashions and Design</div><div class="b who"></div></div></div>
     <div id="banner"></div>
     <div id="main"></div>
   </main>
@@ -456,7 +467,7 @@ function posGrid(){
   const src=posTab==='products'?db.products:db.services;
   const items=src.filter(i=>(i.name+' '+(i.sku||'')+' '+(i.barcode||'')+' '+(i.category||'')).toLowerCase().includes(q));
   $('#posGrid').innerHTML=items.length?items.map(i=>posTab==='products'
-    ?`<button class="tile" ${i.stock<=0?'disabled':''} onclick="addToCart('product','${i.id}')"><span class="t1">${esc(i.name)}</span><span class="t2">${i.stock>0?i.stock+' in stock':'Out of stock'}</span><span class="p mono">${money(i.price)}</span></button>`
+    ?`<button class="tile" ${i.stock<=0?'disabled':''} onclick="addToCart('product','${i.id}')">${tileImg(i)}<span class="t1">${esc(i.name)}</span><span class="t2">${i.stock>0?i.stock+' in stock':'Out of stock'}</span><span class="p mono">${money(i.price)}</span></button>`
     :`<button class="tile" onclick="addToCart('service','${i.id}')"><span class="t1">${esc(i.name)}</span><span class="t2">${esc(i.desc||'')}</span><span class="p mono">${money(i.price)}</span></button>`).join('')
     :`<div class="empty full">No ${posTab} found. Add some under ${posTab==='products'?'Products':'Services'}.</div>`;
 }
@@ -650,7 +661,7 @@ function paySave(e){
 function printReceipt(id){
   const o=db.orders.find(x=>x.id===id);const s=db.settings;
   const sch=schedule(o);
-  $('#printArea').innerHTML=`<div class="wm"><img src="${LOGO}" alt=""></div><div class="rc"><h1>${esc(BIZ)}</h1><div class="c">${esc(s.address)}${s.address&&s.phone?'<br>':''}${esc(s.phone)}</div><hr>
+  $('#printArea').innerHTML=`<div class="wm"><img src="${getLogo()}" alt=""></div><div class="rc"><h1>${esc(BIZ)}</h1><div class="c">${esc(s.address)}${s.address&&s.phone?'<br>':''}${esc(s.phone)}</div><hr>
   <div>Receipt #${esc(o.no)}<br>${fmtDate(o.date)}<br>Customer: ${esc(custName(o.customerId))}${o.by?'<br>Served by: '+esc(o.by):''}${o.due?'<br>Pickup: '+fmtDate(o.due):''}</div>
   <table><tr><th>Item</th><th class="r">Qty</th><th class="r">Amount</th></tr>${o.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="r">${i.qty}</td><td class="r">${money(i.price*i.qty)}</td></tr>`).join('')}</table>
   <table>${o.discount?`<tr><td>Discount</td><td class="r">−${money(o.discount)}</td></tr>`:''}${o.tax?`<tr><td>Tax</td><td class="r">${money(o.tax)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="r"><b>${money(o.total)}</b></td></tr><tr><td>Paid</td><td class="r">${money(paidOf(o))}</td></tr><tr><td><b>Balance</b></td><td class="r"><b>${money(Math.max(0,balOf(o)))}</b></td></tr></table>
@@ -669,16 +680,19 @@ const productFields=[
 ];
 function viewProducts(){
   return pageHead('Products',`${db.products.length} items`,'<button class="btn" onclick="scanFindProduct()">Scan</button>'+(own()?'<button class="btn pri" onclick="editProduct()">Add product</button>':''))+searchBox('Search products')+
-  `<div class="card list" id="list">${db.products.length?db.products.map(p=>`<div class="item"><div class="grow"><div class="t1">${esc(p.name)}</div><div class="t2">${[p.sku,p.barcode,p.category,vendName(p.vendorId)].filter(Boolean).map(esc).join(' · ')}</div></div><span class="badge ${p.stock<=0?'bad':p.stock<=p.low?'warn':'ok'}">${p.stock} in stock</span><div class="right mono"><div class="t1">${money(p.price)}</div>${own()?`<div class="t2">cost ${money(p.cost)}</div>`:''}</div>${own()?`<div class="actions"><button class="btn sm" onclick="restock('${p.id}')">Restock</button><button class="btn sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn sm bad" onclick="delItem('products','${p.id}')">Delete</button></div>`:''}</div>`).join(''):'<div class="empty">No products yet. Add your first product.</div>'}</div>`;
+  `<div class="card list" id="list">${db.products.length?db.products.map(p=>`<div class="item">${thumbHtml(p)}<div class="grow"><div class="t1">${esc(p.name)}</div><div class="t2">${[p.sku,p.barcode,p.category,vendName(p.vendorId)].filter(Boolean).map(esc).join(' · ')}</div></div><span class="badge ${p.stock<=0?'bad':p.stock<=p.low?'warn':'ok'}">${p.stock} in stock</span><div class="right mono"><div class="t1">${money(p.price)}</div>${own()?`<div class="t2">cost ${money(p.cost)}</div>`:''}</div>${own()?`<div class="actions"><button class="btn sm" onclick="restock('${p.id}')">Restock</button><button class="btn sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn sm bad" onclick="delItem('products','${p.id}')">Delete</button></div>`:''}</div>`).join(''):'<div class="empty">No products yet. Add your first product.</div>'}</div>`;
 }
 function editProduct(id,barcode){
   if(!needOwner())return;
+  pendingImg=undefined;
   const p=db.products.find(x=>x.id===id);
   formModal(id?'Edit product':'New product',productFields,p||{stock:0,low:3,price:'',cost:'',barcode:barcode||''},o=>{
     if(o.barcode&&db.products.some(x=>x.barcode===o.barcode&&x!==p)){toast('Another product already uses that barcode');return}
-    if(p)Object.assign(p,o);else db.products.push({id:uid(),...o});
+    let pid;
+    if(p){Object.assign(p,o);pid=p.id}else{pid=uid();db.products.push({id:pid,...o})}
+    if(pendingImg!==undefined){pendingImg?imgPut(pid,pendingImg):imgDel(pid);pendingImg=undefined}
     save();closeModal();render();toast('Product saved');
-  });
+  },picBlock(id));
 }
 function restock(id){
   if(!needOwner())return;
@@ -783,6 +797,7 @@ function delItem(kind,id){
   const label={products:'product',services:'service',customers:'customer',vendors:'vendor'}[kind];
   askConfirm(`Delete this ${label}? This cannot be undone.`,()=>{
     db[kind]=db[kind].filter(x=>x.id!==id);
+    if(kind==='products')imgDel(id);
     if(kind==='vendors')db.products.forEach(p=>{if(p.vendorId===id)p.vendorId=''});
     save();render();toast('Deleted');
   });
@@ -803,6 +818,7 @@ function viewSettings(){
       <label class="fld full"><span>Receipt footer</span><input name="footer" value="${esc(s.footer)}"></label>
     </div><div class="bar"><button class="btn pri">Save settings</button></div></form>
   </div>
+  ${logoCard()}
   ${teamCard()}
   <div class="card" style="padding:18px;max-width:640px;margin-bottom:16px">
     <h3 style="margin-bottom:6px">On this phone</h3>
@@ -826,7 +842,7 @@ function saveSettings(e){
 }
 function backup(){
   db.settings.lastBackup=today();save();
-  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({...db,images:imgs})],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=`annies-pos-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();
   toast('Backup downloaded');
@@ -840,7 +856,9 @@ function restore(file){
       if(!d.products||!d.orders)throw 0;
       askConfirm('Replace all current records with this backup?',()=>{
         const keepU=db.users,keepR=db.recovery;
+        const imgIn=d.images;delete d.images;
         db=Object.assign(defaults(),d);
+        if(imgIn)imgReplace(imgIn).then(()=>{if(cur)render()});
         if(!d.users||!d.users.length){db.users=keepU;db.recovery=keepR}
         save();
         const me=db.users.find(u=>u.id===cur.id);
@@ -853,9 +871,79 @@ function restore(file){
 }
 function resetAll(){
   if(!needOwner())return;
-  askConfirm('Erase all products, customers, orders, settings and user accounts? You will set up the owner account again. Download a backup first if you might need your records.',()=>{db=defaults();cart=[];cur=null;lockedId=null;clearTimeout(lockTimer);closeScanner();save();showAuth()},'Erase everything');
+  askConfirm('Erase all products, customers, orders, settings and user accounts? You will set up the owner account again. Download a backup first if you might need your records.',()=>{db=defaults();cart=[];cur=null;lockedId=null;clearTimeout(lockTimer);closeScanner();imgReplace({});save();showAuth()},'Erase everything');
 }
 
+
+
+/* ---------- BUSINESS LOGO ---------- */
+const getLogo=()=>imgs['__logo']||LOGO;
+function applyLogo(){$$('.blogo').forEach(i=>{i.src=getLogo()})}
+async function changeLogo(inp){
+  if(!needOwner())return;
+  const f=inp.files&&inp.files[0];if(!f)return;
+  try{await imgPut('__logo',await fileToThumb(f,600));render();toast('Logo updated')}
+  catch(e){toast('Could not read that picture')}
+  inp.value='';
+}
+async function resetLogo(){if(!needOwner())return;await imgDel('__logo');render();toast('Original logo restored')}
+function logoCard(){
+  return `<div class="card" style="padding:18px;max-width:640px;margin-bottom:16px"><h3 style="margin-bottom:6px">Business logo</h3>
+  <p class="t2" style="margin-top:0">Shown next to the title, on the sign-in page and as the watermark on receipts.</p>
+  <div class="picrow"><div class="pic" style="width:120px;height:120px;background:#fff"><img src="${getLogo()}" alt="Current logo" style="object-fit:contain"></div>
+  <div class="actions" style="justify-content:flex-start"><label class="btn pri">Change logo<input type="file" accept="image/*" hidden onchange="changeLogo(this)"></label>${imgs['__logo']?'<button class="btn" onclick="resetLogo()">Use original logo</button>':''}</div></div></div>`;
+}
+
+/* ---------- PRODUCT PICTURES (stored on the phone in IndexedDB) ---------- */
+let imgs={},idb=null,imgOK=true,pendingImg;
+function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('annies_pos_img',1);r.onupgradeneeded=()=>r.result.createObjectStore('img');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function imgLoad(){
+  try{
+    idb=await idbOpen();
+    await new Promise((res,rej)=>{const rq=idb.transaction('img').objectStore('img').openCursor();
+      rq.onsuccess=()=>{const c=rq.result;if(c){imgs[c.key]=c.value;c.continue()}else res()};rq.onerror=()=>rej(rq.error)});
+  }catch(e){imgOK=false}
+}
+function idbRun(fn){
+  if(!idb)return Promise.resolve();
+  return new Promise(res=>{try{const tx=idb.transaction('img','readwrite');fn(tx.objectStore('img'));tx.oncomplete=()=>res();tx.onerror=tx.onabort=()=>res()}catch(e){res()}});
+}
+const imgPut=(id,d)=>{imgs[id]=d;return idbRun(s=>s.put(d,id))};
+const imgDel=id=>{delete imgs[id];return idbRun(s=>s.delete(id))};
+async function imgReplace(map){imgs={};await idbRun(s=>s.clear());for(const [k,v] of Object.entries(map||{}))await imgPut(k,v)}
+function fileToThumb(file,max=480){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1,max/Math.max(im.width,im.height));
+      const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',.72));
+    };
+    im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('bad image'))};
+    im.src=url;
+  });
+}
+const picInner=src=>src?`<img src="${src}" alt="">`:'<span class="t2">No picture</span>';
+function picBlock(pid){
+  return `<div class="full" style="margin-top:14px"><div class="fld"><span>Picture</span></div>
+  <div class="picrow"><div class="pic" id="picBox">${picInner(pid&&imgs[pid])}</div>
+  <div class="actions" style="justify-content:flex-start"><label class="btn sm">Take photo<input type="file" accept="image/*" capture="environment" hidden onchange="pickPic(this)"></label><label class="btn sm">Choose from gallery<input type="file" accept="image/*" hidden onchange="pickPic(this)"></label><button type="button" class="btn sm bad" onclick="clearPic()">Remove</button></div></div>
+  ${imgOK?'':'<div class="t2" style="margin-top:6px">This browser cannot save pictures between sessions.</div>'}</div>`;
+}
+async function pickPic(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  try{pendingImg=await fileToThumb(f);$('#picBox').innerHTML=picInner(pendingImg)}
+  catch(e){toast('Could not read that picture')}
+  inp.value='';
+}
+function clearPic(){pendingImg=null;$('#picBox').innerHTML=picInner(null)}
+const thumbHtml=p=>imgs[p.id]?`<img class="thumb" src="${imgs[p.id]}" alt="" onclick="event.stopPropagation();viewPic('${p.id}')">`:`<div class="thumb ph">${esc((p.name||'?').trim().charAt(0).toUpperCase())}</div>`;
+const tileImg=p=>imgs[p.id]?`<img class="timg" src="${imgs[p.id]}" alt="">`:`<span class="timg ph">${esc((p.name||'?').trim().charAt(0).toUpperCase())}</span>`;
+function viewPic(id){
+  const p=db.products.find(x=>x.id===id);if(!p||!imgs[id])return;
+  openModal(`<h2>${esc(p.name)}</h2><img src="${imgs[id]}" alt="" style="width:100%;border-radius:10px"><div class="bar"><button class="btn" onclick="closeModal()">Close</button></div>`);
+}
 
 /* ---------- BARCODE SCANNER (phone camera) ---------- */
 let scanStream=null,scanTimer=0,scanDet=null,scanCb=null,scanLast='',scanLastT=0,scanUnknown='';
@@ -981,7 +1069,7 @@ const validUser=u=>/^[a-z0-9._-]{3,20}$/.test(u);
 
 function authScreen(html){
   document.body.classList.add('locked');
-  $('#authRoot').innerHTML=`<div class="auth"><div class="authcard"><div class="tape"></div><div class="authbody"><img class="authlogo" src="${LOGO}" alt="Annie's Fashions and Design">${html}</div></div></div>`;
+  $('#authRoot').innerHTML=`<div class="auth"><div class="authcard"><div class="tape"></div><div class="authbody"><img class="authlogo" src="${getLogo()}" alt="Annie's Fashions and Design">${html}</div></div></div>`;
   const f=$('#authRoot input:not([type=checkbox])');if(f)f.focus();
 }
 function togglePw(btn){const i=btn.previousElementSibling;const show=i.type==='password';i.type=show?'text':'password';btn.textContent=show?'Hide':'Show'}
@@ -1135,11 +1223,11 @@ function removeUser(id){
 function render(){
   const v={dash:viewDash,sale:viewSale,orders:viewOrders,prod:viewProducts,serv:viewServices,cust:viewCustomers,vend:viewVendors,set:viewSettings}[view];
   $('#main').innerHTML=v();
-  drawNav();
+  drawNav();applyLogo();
   if(view==='sale'){posGrid();posCart()}
   if(view==='set')checkPersist();
 }
-drawBanner();showAuth();
+drawBanner();imgLoad().then(showAuth);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
