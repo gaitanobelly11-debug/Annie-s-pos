@@ -151,6 +151,19 @@ textarea{resize:vertical}
 .sched .r.late{background:var(--badbg)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;z-index:80;max-width:90vw}
 
+/* login */
+body.locked .shell{display:none}
+.auth{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow:auto}
+.authcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:400px;overflow:hidden}
+.authbody{padding:22px}
+.authlogo{display:block;width:150px;height:150px;margin:0 auto 8px;object-fit:contain;background:#fff;border-radius:12px}
+.authh{font-size:26px;text-align:center;margin-bottom:6px}
+.onecol{display:grid;gap:12px}
+.pw{display:flex;gap:6px}
+.autherr{color:var(--bad);min-height:20px;font-size:13.5px;margin:8px 0}
+.code{font:700 22px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;text-align:center;padding:14px;border:2px dashed var(--tape);border-radius:10px;margin:12px 0;user-select:all}
+.chk{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.chk input{width:auto}
 /* scanner */
 .scan{position:fixed;inset:0;background:#000;z-index:70;display:flex;flex-direction:column}
 .scan .view{position:relative;flex:1;min-height:0;display:flex;overflow:hidden}
@@ -194,22 +207,23 @@ textarea{resize:vertical}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
-<body>
+<body class="locked">
 <div class="shell">
   <aside class="side">
     <div class="brand"><div class="a">Annie's</div><div class="b">Fashions and Design</div></div>
     <div class="tape"></div>
     <nav class="menu" id="nav"></nav>
-    <div class="foot">Works offline. Data stays on this device.</div>
+    <div class="foot"><div class="who" style="font-weight:600;color:var(--ink);margin-bottom:4px"></div>Works offline. Data stays on this device.</div>
   </aside>
   <main>
-    <div class="mobilebrand"><div class="a">Annie's</div><div class="b">Fashions and Design</div></div>
+    <div class="mobilebrand"><div class="a">Annie's</div><div class="b">Fashions and Design</div><div class="b who"></div></div>
     <div id="banner"></div>
     <div id="main"></div>
   </main>
 </div>
 <div id="modalRoot"></div>
 <div id="scanRoot"></div>
+<div id="authRoot"></div>
 <div id="toastRoot"></div>
 <div id="printArea"></div>
 
@@ -234,8 +248,8 @@ function defaults(){
       {id:'s4',name:'Wedding gown',desc:'Custom design and fitting',price:25000,days:45}
     ],
     customers:[], vendors:[], orders:[], purchases:[],
-    settings:{currency:'KSh',taxRate:0,phone:'',address:'',lastBackup:'',footer:'Thank you for choosing Annie\'s!'},
-    seq:{order:1001}
+    settings:{currency:'KSh',taxRate:0,phone:'',address:'',lastBackup:'',lockMin:5,footer:'Thank you for choosing Annie\'s!'},
+    seq:{order:1001},users:[],recovery:null,sec:{fails:0,until:0,last:''}
   };
 }
 function load(){
@@ -328,12 +342,19 @@ const ic={
  vend:'<path d="M3 7h12v10H3zM15 10h4l2 3v4h-6M7 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM18 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>',
  set:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5a7 7 0 000 2.4l-2 1.5 2 3.4 2.3-.9a7 7 0 002 1.2l.4 2.6h4l.4-2.6a7 7 0 002-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>'
 };
+ic.out='<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>';
 const NAV=[['dash','Dashboard'],['sale','New sale'],['orders','Orders'],['prod','Products'],['serv','Services'],['cust','Customers'],['vend','Vendors'],['set','Settings']];
 const viewKey={dash:'Dashboard','sale':'New sale',orders:'Orders',prod:'Products',serv:'Services',cust:'Customers',vend:'Vendors',set:'Settings'};
 let view='dash';
-function go(v){view=v;render();window.scrollTo(0,0)}
+const STAFF_VIEWS=['sale','orders','prod','serv','cust'];
+const own=()=>!!cur&&cur.role==='owner';
+const allowed=v=>own()||STAFF_VIEWS.includes(v);
+function needOwner(){if(own())return true;toast('Only the owner can do that');return false}
+function go(v){if(!allowed(v))return;view=v;render();window.scrollTo(0,0)}
 function drawNav(){
-  $('#nav').innerHTML=NAV.map(([k,l])=>`<button class="${view===k?'on':''}" onclick="go('${k}')"><svg viewBox="0 0 24 24">${ic[k]}</svg>${l}</button>`).join('');
+  $('#nav').innerHTML=NAV.filter(([k])=>allowed(k)).map(([k,l])=>`<button class="${view===k?'on':''}" onclick="go('${k}')"><svg viewBox="0 0 24 24">${ic[k]}</svg>${l}</button>`).join('')+
+   `<button onclick="logout()"><svg viewBox="0 0 24 24">${ic.out}</svg>Sign out</button>`;
+  $$('.who').forEach(e=>e.textContent=cur?`${cur.name} · ${own()?'Owner':'Staff'}`:'');
 }
 
 /* ---------- generic pieces ---------- */
@@ -363,7 +384,7 @@ function formModal(title,fields,vals,onSave,extra){
 function formSubmit(e){
   e.preventDefault();
   const fd=new FormData(e.target),o={};
-  _ff.forEach(f=>{const v=fd.get(f.k);o[f.k]=f.t==='number'?num(v):String(v??'').trim()});
+  _ff.forEach(f=>{const v=fd.get(f.k);o[f.k]=f.t==='number'?num(v):f.t==='password'?String(v??''):String(v??'').trim()});
   _fs(o);return false;
 }
 const vendorOpts=()=>[['','— none —'],...db.vendors.map(v=>[v.id,v.name])];
@@ -531,10 +552,10 @@ function coDone(e){
   const o={id:uid(),no:'AF-'+(db.seq.order++),date:today(),customerId:custId,
     items:cart.map(x=>({...x})),subtotal:c.sub,discount:c.disc,tax:c.tax,total:c.total,
     payments:[],plan:c.mode==='plan'?c.plan:null,due:f.due?f.due.value:'',
-    status:hasSvc?'Pending':'Delivered',notes:f.notes.value.trim()};
+    status:hasSvc?'Pending':'Delivered',notes:f.notes.value.trim(),by:cur.name};
   const method=f.method.value;
-  if(c.mode==='full'){ if(c.total>0)o.payments.push({id:uid(),date:today(),amount:c.total,method,note:'Paid in full'}); }
-  else if(c.plan.deposit>0) o.payments.push({id:uid(),date:today(),amount:c.plan.deposit,method,note:'Deposit'});
+  if(c.mode==='full'){ if(c.total>0)o.payments.push({id:uid(),date:today(),amount:c.total,method,note:'Paid in full',by:cur.name}); }
+  else if(c.plan.deposit>0) o.payments.push({id:uid(),date:today(),amount:c.plan.deposit,method,note:'Deposit',by:cur.name});
   cart.forEach(it=>{if(it.type==='product'){const p=db.products.find(x=>x.id===it.refId);if(p)p.stock-=it.qty}});
   db.orders.unshift(o);
   cart=[];save();closeModal();toast('Sale saved');
@@ -558,14 +579,14 @@ function orderDetail(id){
   const canStatus=o.status!=='Cancelled';
   openModal(`<h2>Order #${esc(o.no)}</h2>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${payBadge(o)}${canStatus?`<select style="width:auto" onchange="setStatus('${o.id}',this.value)" aria-label="Job status">${['Pending','In progress','Ready','Delivered'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select>`:''}</div>
-  <dl class="kv"><dt>Customer</dt><dd>${esc(custName(o.customerId))}</dd><dt>Date</dt><dd>${fmtDate(o.date)}</dd>${o.due?`<dt>Due</dt><dd>${fmtDate(o.due)}</dd>`:''}${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:''}</dl>
+  <dl class="kv"><dt>Customer</dt><dd>${esc(custName(o.customerId))}</dd><dt>Date</dt><dd>${fmtDate(o.date)}</dd>${o.by?`<dt>Served by</dt><dd>${esc(o.by)}</dd>`:''}${o.due?`<dt>Due</dt><dd>${fmtDate(o.due)}</dd>`:''}${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:''}</dl>
   <div class="card list">${o.items.map(i=>`<div class="item"><div class="grow"><div class="t1">${esc(i.name)}</div><div class="t2">${i.qty} × ${money(i.price)}</div></div><div class="mono">${money(i.price*i.qty)}</div></div>`).join('')}</div>
   <div class="totals">${o.discount?`<div><span>Discount</span><span class="mono">−${money(o.discount)}</span></div>`:''}${o.tax?`<div><span>Tax</span><span class="mono">${money(o.tax)}</span></div>`:''}<div class="g"><span>Total</span><span class="mono">${money(o.total)}</span></div><div><span>Paid</span><span class="mono">${money(paid)}</span></div><div class="t1"><span>Balance</span><span class="mono">${money(Math.max(0,bal))}</span></div></div>
   ${sch.length?`<div class="sect">Installment plan</div><div class="t2" style="margin-bottom:6px">Deposit ${money(o.plan.deposit)} · ${o.plan.count} ${freqLabel[o.plan.frequency]} payments</div><div class="sched">${sch.map(s=>`<div class="r ${s.done?'done':(s.due<t?'late':'')}"><span class="t2">${s.n}</span><span>${fmtDate(s.due)}${s.done?' · paid':(s.due<t?' · overdue':'')}</span><span class="t2">${s.paid>0&&!s.done?money(s.paid)+' paid':''}</span><span class="mono t1">${money(s.amount)}</span></div>`).join('')}</div>`:''}
   <div class="sect">Payments</div>
-  ${o.payments.length?`<div class="card list">${o.payments.map(p=>`<div class="item"><div class="grow"><div class="t1">${fmtDate(p.date)}</div><div class="t2">${esc(p.method)}${p.note?' · '+esc(p.note):''}</div></div><div class="mono">${money(p.amount)}</div></div>`).join('')}</div>`:'<div class="t2">No payments yet.</div>'}
+  ${o.payments.length?`<div class="card list">${o.payments.map(p=>`<div class="item"><div class="grow"><div class="t1">${fmtDate(p.date)}</div><div class="t2">${esc(p.method)}${p.note?' · '+esc(p.note):''}${p.by?' · '+esc(p.by):''}</div></div><div class="mono">${money(p.amount)}</div></div>`).join('')}</div>`:'<div class="t2">No payments yet.</div>'}
   <div class="bar">
-    ${canStatus?'<button class="btn bad" onclick="cancelOrder(\''+o.id+'\')">Cancel order</button>':''}
+    ${canStatus&&own()?'<button class="btn bad" onclick="cancelOrder(\''+o.id+'\')">Cancel order</button>':''}
     <button class="btn" onclick="printReceipt('${o.id}')">Print receipt</button>
     ${canStatus&&bal>0.005?`<button class="btn pri" onclick="payModal('${o.id}')">Record payment</button>`:''}
     <button class="btn" onclick="closeModal()">Close</button>
@@ -577,6 +598,7 @@ function setStatus(id,s){
   render();
 }
 function cancelOrder(id){
+  if(!needOwner())return;
   askConfirm('Cancel this order? Product stock will go back on the shelf. Payments already taken stay on record, so refund the customer separately if needed.',()=>{
     const o=db.orders.find(x=>x.id===id);
     o.items.forEach(it=>{if(it.type==='product'){const p=db.products.find(x=>x.id===it.refId);if(p)p.stock+=it.qty}});
@@ -603,14 +625,14 @@ function paySave(e){
   const amt=round2(num(f.amount.value));
   if(amt<=0){toast('Enter an amount');return false}
   if(amt>window._payBal+0.005){toast('That is more than the balance');return false}
-  o.payments.push({id:uid(),date:f.date.value||today(),amount:amt,method:f.method.value,note:f.note.value.trim()});
+  o.payments.push({id:uid(),date:f.date.value||today(),amount:amt,method:f.method.value,note:f.note.value.trim(),by:cur.name});
   save();toast('Payment recorded');render();orderDetail(o.id);return false;
 }
 function printReceipt(id){
   const o=db.orders.find(x=>x.id===id);const s=db.settings;
   const sch=schedule(o);
   $('#printArea').innerHTML=`<div class="wm"><img src="${LOGO}" alt=""></div><div class="rc"><h1>${esc(BIZ)}</h1><div class="c">${esc(s.address)}${s.address&&s.phone?'<br>':''}${esc(s.phone)}</div><hr>
-  <div>Receipt #${esc(o.no)}<br>${fmtDate(o.date)}<br>Customer: ${esc(custName(o.customerId))}${o.due?'<br>Pickup: '+fmtDate(o.due):''}</div>
+  <div>Receipt #${esc(o.no)}<br>${fmtDate(o.date)}<br>Customer: ${esc(custName(o.customerId))}${o.by?'<br>Served by: '+esc(o.by):''}${o.due?'<br>Pickup: '+fmtDate(o.due):''}</div>
   <table><tr><th>Item</th><th class="r">Qty</th><th class="r">Amount</th></tr>${o.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="r">${i.qty}</td><td class="r">${money(i.price*i.qty)}</td></tr>`).join('')}</table>
   <table>${o.discount?`<tr><td>Discount</td><td class="r">−${money(o.discount)}</td></tr>`:''}${o.tax?`<tr><td>Tax</td><td class="r">${money(o.tax)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="r"><b>${money(o.total)}</b></td></tr><tr><td>Paid</td><td class="r">${money(paidOf(o))}</td></tr><tr><td><b>Balance</b></td><td class="r"><b>${money(Math.max(0,balOf(o)))}</b></td></tr></table>
   ${o.payments.length?`<div>Payments:</div><table>${o.payments.map(p=>`<tr><td>${fmtDate(p.date)} ${esc(p.method)}</td><td class="r">${money(p.amount)}</td></tr>`).join('')}</table>`:''}
@@ -627,10 +649,11 @@ const productFields=[
   {k:'vendorId',l:'Vendor',t:'select',opts:vendorOpts,full:1}
 ];
 function viewProducts(){
-  return pageHead('Products',`${db.products.length} items`,'<button class="btn" onclick="scanFindProduct()">Scan</button><button class="btn pri" onclick="editProduct()">Add product</button>')+searchBox('Search products')+
-  `<div class="card list" id="list">${db.products.length?db.products.map(p=>`<div class="item"><div class="grow"><div class="t1">${esc(p.name)}</div><div class="t2">${[p.sku,p.barcode,p.category,vendName(p.vendorId)].filter(Boolean).map(esc).join(' · ')}</div></div><span class="badge ${p.stock<=0?'bad':p.stock<=p.low?'warn':'ok'}">${p.stock} in stock</span><div class="right mono"><div class="t1">${money(p.price)}</div><div class="t2">cost ${money(p.cost)}</div></div><div class="actions"><button class="btn sm" onclick="restock('${p.id}')">Restock</button><button class="btn sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn sm bad" onclick="delItem('products','${p.id}')">Delete</button></div></div>`).join(''):'<div class="empty">No products yet. Add your first product.</div>'}</div>`;
+  return pageHead('Products',`${db.products.length} items`,'<button class="btn" onclick="scanFindProduct()">Scan</button>'+(own()?'<button class="btn pri" onclick="editProduct()">Add product</button>':''))+searchBox('Search products')+
+  `<div class="card list" id="list">${db.products.length?db.products.map(p=>`<div class="item"><div class="grow"><div class="t1">${esc(p.name)}</div><div class="t2">${[p.sku,p.barcode,p.category,vendName(p.vendorId)].filter(Boolean).map(esc).join(' · ')}</div></div><span class="badge ${p.stock<=0?'bad':p.stock<=p.low?'warn':'ok'}">${p.stock} in stock</span><div class="right mono"><div class="t1">${money(p.price)}</div>${own()?`<div class="t2">cost ${money(p.cost)}</div>`:''}</div>${own()?`<div class="actions"><button class="btn sm" onclick="restock('${p.id}')">Restock</button><button class="btn sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn sm bad" onclick="delItem('products','${p.id}')">Delete</button></div>`:''}</div>`).join(''):'<div class="empty">No products yet. Add your first product.</div>'}</div>`;
 }
 function editProduct(id,barcode){
+  if(!needOwner())return;
   const p=db.products.find(x=>x.id===id);
   formModal(id?'Edit product':'New product',productFields,p||{stock:0,low:3,price:'',cost:'',barcode:barcode||''},o=>{
     if(o.barcode&&db.products.some(x=>x.barcode===o.barcode&&x!==p)){toast('Another product already uses that barcode');return}
@@ -639,6 +662,7 @@ function editProduct(id,barcode){
   });
 }
 function restock(id){
+  if(!needOwner())return;
   const p=db.products.find(x=>x.id===id);
   formModal('Restock: '+p.name,[
     {k:'qty',l:'Quantity received',t:'number',req:1},{k:'cost',l:'Unit cost',t:'number'},
@@ -657,10 +681,11 @@ const serviceFields=[
   {k:'price',l:'Price',t:'number',req:1},{k:'days',l:'Usual turnaround (days)',t:'number'}
 ];
 function viewServices(){
-  return pageHead('Services',`${db.services.length} services`,'<button class="btn pri" onclick="editService()">Add service</button>')+searchBox('Search services')+
-  `<div class="card list" id="list">${db.services.length?db.services.map(s=>`<div class="item"><div class="grow"><div class="t1">${esc(s.name)}</div><div class="t2">${esc(s.desc||'')}${s.days?' · about '+s.days+' day'+(s.days>1?'s':''):''}</div></div><div class="right mono t1">${money(s.price)}</div><div class="actions"><button class="btn sm" onclick="editService('${s.id}')">Edit</button><button class="btn sm bad" onclick="delItem('services','${s.id}')">Delete</button></div></div>`).join(''):'<div class="empty">No services yet. Add alterations, custom sewing and more.</div>'}</div>`;
+  return pageHead('Services',`${db.services.length} services`,(own()?'<button class="btn pri" onclick="editService()">Add service</button>':''))+searchBox('Search services')+
+  `<div class="card list" id="list">${db.services.length?db.services.map(s=>`<div class="item"><div class="grow"><div class="t1">${esc(s.name)}</div><div class="t2">${esc(s.desc||'')}${s.days?' · about '+s.days+' day'+(s.days>1?'s':''):''}</div></div><div class="right mono t1">${money(s.price)}</div>${own()?`<div class="actions"><button class="btn sm" onclick="editService('${s.id}')">Edit</button><button class="btn sm bad" onclick="delItem('services','${s.id}')">Delete</button></div>`:''}</div>`).join(''):'<div class="empty">No services yet. Add alterations, custom sewing and more.</div>'}</div>`;
 }
 function editService(id){
+  if(!needOwner())return;
   const s=db.services.find(x=>x.id===id);
   formModal(id?'Edit service':'New service',serviceFields,s||{days:3,price:''},o=>{
     if(s)Object.assign(s,o);else db.services.push({id:uid(),...o});
@@ -697,7 +722,7 @@ function custDetail(id){
   ${c.notes?`<div class="sect">Notes</div><div style="white-space:pre-wrap">${esc(c.notes)}</div>`:''}
   <div class="sect">Orders</div>
   ${os.length?`<div class="card list">${os.map(o=>`<div class="item click" onclick="orderDetail('${o.id}')"><div class="grow"><div class="t1">#${esc(o.no)} · ${fmtDate(o.date)}</div><div style="margin-top:2px">${payBadge(o)} ${statusBadge(o)}</div></div><div class="right mono">${money(o.total)}</div></div>`).join('')}</div>`:'<div class="t2">No orders yet.</div>'}
-  <div class="bar"><button class="btn bad" onclick="delItem('customers','${id}')">Delete</button><button class="btn" onclick="editCustomer('${id}')">Edit</button><button class="btn" onclick="closeModal()">Close</button></div>`,true);
+  <div class="bar">${own()?`<button class="btn bad" onclick="delItem('customers','${id}')">Delete</button>`:''}<button class="btn" onclick="editCustomer('${id}')">Edit</button><button class="btn" onclick="closeModal()">Close</button></div>`,true);
 }
 
 /* ---------- VENDORS ---------- */
@@ -710,6 +735,7 @@ function viewVendors(){
   `<div class="card list" id="list">${db.vendors.length?db.vendors.map(v=>`<div class="item click" onclick="vendDetail('${v.id}')"><div class="grow"><div class="t1">${esc(v.name)}</div><div class="t2">${[v.contact,v.phone].filter(Boolean).map(esc).join(' · ')||'No contact details'}</div></div><span class="t2">${db.products.filter(p=>p.vendorId===v.id).length} products</span></div>`).join(''):'<div class="empty">No vendors yet. Add the suppliers you buy fabric and notions from.</div>'}</div>`;
 }
 function editVendor(id){
+  if(!needOwner())return;
   const v=db.vendors.find(x=>x.id===id);
   formModal(id?'Edit vendor':'New vendor',vendorFields,v||{},o=>{
     if(v)Object.assign(v,o);else db.vendors.push({id:uid(),...o});
@@ -733,6 +759,7 @@ function vendDetail(id){
 
 /* ---------- delete ---------- */
 function delItem(kind,id){
+  if(!needOwner())return;
   if(kind==='customers'&&custOrders(id).length){closeModal();toast('This customer has orders and cannot be deleted');return}
   const label={products:'product',services:'service',customers:'customer',vendors:'vendor'}[kind];
   askConfirm(`Delete this ${label}? This cannot be undone.`,()=>{
@@ -757,6 +784,7 @@ function viewSettings(){
       <label class="fld full"><span>Receipt footer</span><input name="footer" value="${esc(s.footer)}"></label>
     </div><div class="bar"><button class="btn pri">Save settings</button></div></form>
   </div>
+  ${teamCard()}
   <div class="card" style="padding:18px;max-width:640px;margin-bottom:16px">
     <h3 style="margin-bottom:6px">On this phone</h3>
     <p class="t2" style="margin-top:0">Everything you enter is stored on this device, in this browser, and nothing is sent anywhere. To use the camera scanner and open the app with no internet, install it: open the app's web address in Chrome, tap the ⋮ menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p>
@@ -773,7 +801,7 @@ function viewSettings(){
   </div>`;
 }
 function saveSettings(e){
-  e.preventDefault();const f=e.target;
+  e.preventDefault();if(!needOwner())return false;const f=e.target;
   Object.assign(db.settings,{phone:f.phone.value.trim(),address:f.address.value.trim(),currency:f.currency.value.trim()||'KSh',taxRate:Math.max(0,num(f.tax.value)),footer:f.footer.value.trim()});
   save();toast('Settings saved');render();return false;
 }
@@ -785,19 +813,28 @@ function backup(){
   toast('Backup downloaded');
 }
 function restore(file){
-  if(!file)return;
+  if(!file||!needOwner())return;
   const r=new FileReader();
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
       if(!d.products||!d.orders)throw 0;
-      askConfirm('Replace all current records with this backup?',()=>{db=Object.assign(defaults(),d);save();render();toast('Backup restored')},'Restore');
+      askConfirm('Replace all current records with this backup?',()=>{
+        const keepU=db.users,keepR=db.recovery;
+        db=Object.assign(defaults(),d);
+        if(!d.users||!d.users.length){db.users=keepU;db.recovery=keepR}
+        save();
+        const me=db.users.find(u=>u.id===cur.id);
+        if(!me){toast('Backup restored. Please sign in again.');logout();return}
+        cur=me;render();toast('Backup restored');
+      },'Restore');
     }catch(e){toast('That file is not a valid backup')}
   };
   r.readAsText(file);
 }
 function resetAll(){
-  askConfirm('Erase all products, customers, orders and settings? Download a backup first if you might need them.',()=>{db=defaults();cart=[];save();render();toast('All data erased')},'Erase everything');
+  if(!needOwner())return;
+  askConfirm('Erase all products, customers, orders, settings and user accounts? You will set up the owner account again. Download a backup first if you might need your records.',()=>{db=defaults();cart=[];cur=null;lockedId=null;clearTimeout(lockTimer);closeScanner();save();showAuth()},'Erase everything');
 }
 
 
@@ -846,7 +883,7 @@ function handleScan(code){
   beep();
   const r=scanCb?(scanCb(String(code).trim())||{}):{};
   const m=$('#scanMsg');if(m)m.textContent=r.msg||('Scanned '+code);
-  scanUnknown=r.unknown||'';const b=$('#scanNew');if(b)b.hidden=!scanUnknown;
+  scanUnknown=own()?(r.unknown||''):'';const b=$('#scanNew');if(b)b.hidden=!scanUnknown;
   if(r.close)closeScanner();
 }
 function scanManual(e){e.preventDefault();const c=e.target.code.value.trim();if(c){handleScan(c);e.target.code.value=''}return false}
@@ -870,7 +907,7 @@ function scanToCart(){
 function scanFindProduct(){
   openScanner(code=>{
     const p=findByCode(code);
-    setTimeout(()=>p?editProduct(p.id):editProduct(undefined,code),0);
+    setTimeout(()=>p?(own()?editProduct(p.id):toast(`${p.name} · ${money(p.price)} · ${p.stock} in stock`)):(own()?editProduct(undefined,code):toast('No product with that code')),0);
     return {close:true};
   },'Scan a product');
 }
@@ -893,6 +930,188 @@ async function checkPersist(){
   el.textContent=t;
 }
 
+
+/* ---------- SIGN-IN ---------- */
+let cur=null,lockedId=null,lockTimer=0,hiddenAt=0;
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const rnd=(n=16)=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return hex(a)};
+function cyrb(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(16)}
+async function hashPw(pw,salt,alg){
+  alg=alg||(window.crypto&&crypto.subtle?'pbkdf2':'js');
+  if(alg==='pbkdf2'){
+    const enc=new TextEncoder();
+    const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+    const b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(salt),iterations:100000},k,256);
+    return {alg,hash:hex(b)};
+  }
+  let h=pw+salt;for(let i=0;i<5000;i++)h=cyrb(h+salt+i);
+  return {alg:'js',hash:h};
+}
+async function setPw(u,pw){const salt=rnd(16);const r=await hashPw(pw,salt);u.salt=salt;u.alg=r.alg;u.hash=r.hash}
+async function mkUser(name,username,pw,role){const u={id:uid(),name,username:username.toLowerCase(),role};await setPw(u,pw);return u}
+async function checkPw(u,pw){try{return (await hashPw(pw,u.salt,u.alg)).hash===u.hash}catch(e){return false}}
+function genCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const a=new Uint8Array(12);crypto.getRandomValues(a);return [...a].map(x=>A[x%A.length]).join('').match(/.{4}/g).join('-')}
+const normCode=c=>String(c).toUpperCase().replace(/[^A-Z0-9]/g,'');
+async function newRecovery(){
+  const code=genCode(),salt=rnd(16),r=await hashPw(normCode(code),salt);
+  db.recovery={salt,alg:r.alg,hash:r.hash};return code;
+}
+const validUser=u=>/^[a-z0-9._-]{3,20}$/.test(u);
+
+function authScreen(html){
+  document.body.classList.add('locked');
+  $('#authRoot').innerHTML=`<div class="auth"><div class="authcard"><div class="tape"></div><div class="authbody"><img class="authlogo" src="${LOGO}" alt="Annie's Fashions and Design">${html}</div></div></div>`;
+  const f=$('#authRoot input:not([type=checkbox])');if(f)f.focus();
+}
+function togglePw(btn){const i=btn.previousElementSibling;const show=i.type==='password';i.type=show?'text':'password';btn.textContent=show?'Hide':'Show'}
+const pwField=(name,label,ac)=>`<label class="fld"><span>${label}</span><div class="pw"><input name="${name}" type="password" autocomplete="${ac}" required><button type="button" class="btn sm" onclick="togglePw(this)">Show</button></div></label>`;
+function showAuth(){db.users.length?showLogin():showSetup()}
+function showLogin(){
+  authScreen(`<h2 class="authh">Sign in</h2><form onsubmit="return doLogin(event)"><div class="onecol">
+    <label class="fld"><span>Username</span><input name="u" value="${esc(db.sec.last||'')}" autocomplete="username" autocapitalize="none" autocorrect="off" required></label>
+    ${pwField('p','Password','current-password')}
+  </div><div id="authErr" class="autherr"></div><button class="btn pri" style="width:100%">Sign in</button></form>
+  <p class="t2" style="text-align:center;margin-bottom:0"><a href="#" onclick="showRecover();return false">Forgot the owner password?</a></p>`);
+  const p=$('#authRoot input[name=p]');if(p&&db.sec.last)p.focus();
+}
+async function throttled(err){
+  const now=Date.now();
+  if(db.sec.until>now){err(`Too many attempts. Try again in ${Math.ceil((db.sec.until-now)/1000)} seconds.`);return true}
+  return false;
+}
+function failed(err,msg){
+  db.sec.fails++;if(db.sec.fails>=5){db.sec.until=Date.now()+30000;db.sec.fails=0;msg='Too many attempts. Wait 30 seconds and try again.'}
+  save();err(msg);
+}
+async function doLogin(e){
+  e.preventDefault();const f=e.target;const err=m=>{const el=$('#authErr');if(el)el.textContent=m};
+  if(await throttled(err))return false;
+  const u=db.users.find(x=>x.username===f.u.value.trim().toLowerCase());
+  const ok=u?await checkPw(u,f.p.value):false;
+  if(!ok){failed(err,'Wrong username or password.');f.p.value='';return false}
+  db.sec.fails=0;db.sec.until=0;db.sec.last=u.username;save();enter(u);return false;
+}
+function showSetup(){
+  authScreen(`<h2 class="authh">Welcome</h2><p class="t2" style="text-align:center;margin-top:0">Create the owner account. You will use it to sign in and to add staff.</p>
+  <form onsubmit="return doSetup(event)"><div class="onecol">
+    <label class="fld"><span>Your name</span><input name="name" autocomplete="name" required></label>
+    <label class="fld"><span>Username (letters and numbers)</span><input name="u" autocomplete="username" autocapitalize="none" autocorrect="off" required></label>
+    ${pwField('p','Password (at least 4 characters)','new-password')}
+    ${pwField('p2','Confirm password','new-password')}
+  </div><div id="authErr" class="autherr"></div><button class="btn pri" style="width:100%">Create owner account</button></form>`);
+}
+async function doSetup(e){
+  e.preventDefault();const f=e.target;const err=m=>{$('#authErr').textContent=m};
+  const un=f.u.value.trim().toLowerCase();
+  if(!validUser(un))return err('Username must be 3–20 letters, numbers, dot, dash or underscore.'),false;
+  if(f.p.value.length<4)return err('Password must be at least 4 characters.'),false;
+  if(f.p.value!==f.p2.value)return err('The two passwords do not match.'),false;
+  const u=await mkUser(f.name.value.trim(),un,f.p.value,'owner');
+  db.users=[u];const code=await newRecovery();db.sec.last=un;save();
+  showRecoveryCode(code,u);return false;
+}
+function showRecoveryCode(code,u){
+  window._pendingUser=u;
+  authScreen(`<h2 class="authh">Save your recovery code</h2><p>If you forget the owner password, this code is the only way back in. Write it down or take a screenshot, and keep it somewhere safe and private.</p>
+  <div class="code">${code}</div>
+  <label class="chk"><input type="checkbox" onchange="$('#codeGo').disabled=!this.checked"> I have saved the code</label>
+  <button class="btn pri" id="codeGo" style="width:100%" disabled onclick="enter(_pendingUser)">Continue</button>`);
+}
+function showRecover(){
+  authScreen(`<h2 class="authh">Reset owner password</h2><p class="t2" style="margin-top:0">Enter the recovery code you saved when the account was created.</p>
+  <form onsubmit="return doRecover(event)"><div class="onecol">
+    <label class="fld"><span>Recovery code</span><input name="c" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" required></label>
+    ${pwField('p','New password (at least 4 characters)','new-password')}
+    ${pwField('p2','Confirm new password','new-password')}
+  </div><div id="authErr" class="autherr"></div><button class="btn pri" style="width:100%">Reset password</button></form>
+  <p class="t2" style="text-align:center;margin-bottom:0"><a href="#" onclick="showLogin();return false">Back to sign in</a></p>`);
+}
+async function doRecover(e){
+  e.preventDefault();const f=e.target;const err=m=>{const el=$('#authErr');if(el)el.textContent=m};
+  if(await throttled(err))return false;
+  if(f.p.value.length<4)return err('Password must be at least 4 characters.'),false;
+  if(f.p.value!==f.p2.value)return err('The two passwords do not match.'),false;
+  let ok=false;
+  if(db.recovery){try{ok=(await hashPw(normCode(f.c.value),db.recovery.salt,db.recovery.alg)).hash===db.recovery.hash}catch(x){}}
+  if(!ok){failed(err,'That recovery code is not correct.');return false}
+  const o=db.users.find(u=>u.role==='owner');
+  await setPw(o,f.p.value);db.sec.fails=0;db.sec.until=0;
+  const code=await newRecovery();save();
+  showRecoveryCode(code,o);return false;
+}
+function enter(u){
+  cur=u;if(lockedId&&lockedId!==u.id)cart=[];lockedId=null;
+  document.body.classList.remove('locked');$('#authRoot').innerHTML='';
+  if(!allowed(view)||(!own()&&view==='dash'))view=own()?'dash':'sale';
+  render();armLock();window.scrollTo(0,0);
+}
+function lockApp(keepCart){
+  if(!cur)return;
+  lockedId=keepCart?cur.id:null;if(!keepCart)cart=[];
+  cur=null;clearTimeout(lockTimer);closeModal();closeScanner();
+  $('#printArea').innerHTML='';$('#main').innerHTML='';drawNav();showLogin();
+}
+const logout=()=>lockApp(false);
+function armLock(){
+  clearTimeout(lockTimer);
+  const m=db.settings.lockMin;
+  if(cur&&m>0)lockTimer=setTimeout(()=>lockApp(true),m*60000);
+}
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{if(cur)armLock()},{passive:true}));
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){hiddenAt=Date.now();return}
+  const m=db.settings.lockMin;
+  if(cur&&m>0&&hiddenAt&&Date.now()-hiddenAt>m*60000)lockApp(true);
+  hiddenAt=0;
+});
+
+/* team management (owner) */
+function teamCard(){
+  const rows=db.users.map(u=>`<div class="item"><div class="grow"><div class="t1">${esc(u.name)}</div><div class="t2">@${esc(u.username)}</div></div><span class="badge ${u.role==='owner'?'info':''}">${u.role==='owner'?'Owner':'Staff'}</span><div class="actions">${u.id!==cur.id?`<button class="btn sm" onclick="resetPw('${u.id}')">Reset password</button>`:''}${u.role==='staff'?`<button class="btn sm bad" onclick="removeUser('${u.id}')">Remove</button>`:''}</div></div>`).join('');
+  return `<div class="card" style="padding:18px;max-width:640px;margin-bottom:16px"><h3 style="margin-bottom:6px">Team and security</h3>
+  <p class="t2" style="margin-top:0">Staff can make sales, take payments and manage customers. They cannot see the dashboard, cost prices, vendors or settings, and cannot delete records.</p>
+  <div class="card list" style="margin-bottom:12px">${rows}</div>
+  <div class="formgrid"><label class="fld"><span>Lock automatically after</span><select onchange="setLock(this.value)">${[[1,'1 minute'],[5,'5 minutes'],[15,'15 minutes'],[0,'Never']].map(([v,l])=>`<option value="${v}" ${+db.settings.lockMin===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="actions" style="justify-content:flex-start;margin-top:12px"><button class="btn pri" onclick="addStaff()">Add staff</button><button class="btn" onclick="changeMyPw()">Change my password</button></div></div>`;
+}
+function setLock(v){db.settings.lockMin=+v;save();armLock();toast('Auto-lock updated')}
+function addStaff(){
+  if(!needOwner())return;
+  formModal('Add staff member',[
+    {k:'name',l:'Name',req:1,full:1},{k:'username',l:'Username',req:1},{k:'pw',l:'Password (4+ characters)',t:'password',req:1}
+  ],{},async o=>{
+    const un=o.username.toLowerCase();
+    if(!validUser(un))return toast('Username: 3–20 letters, numbers, dot, dash or underscore');
+    if(db.users.some(u=>u.username===un))return toast('That username is taken');
+    if(o.pw.length<4)return toast('Password needs at least 4 characters');
+    db.users.push(await mkUser(o.name,un,o.pw,'staff'));save();closeModal();render();toast('Staff member added');
+  });
+}
+function resetPw(id){
+  if(!needOwner())return;
+  const u=db.users.find(x=>x.id===id);if(!u)return;
+  formModal('New password for '+u.name,[{k:'pw',l:'New password (4+ characters)',t:'password',req:1,full:1}],{},async o=>{
+    if(o.pw.length<4)return toast('Password needs at least 4 characters');
+    await setPw(u,o.pw);save();closeModal();toast('Password changed');
+  });
+}
+function changeMyPw(){
+  formModal('Change my password',[
+    {k:'old',l:'Current password',t:'password',req:1,full:1},{k:'pw',l:'New password (4+ characters)',t:'password',req:1,full:1}
+  ],{},async o=>{
+    if(!(await checkPw(cur,o.old)))return toast('Current password is not correct');
+    if(o.pw.length<4)return toast('Password needs at least 4 characters');
+    await setPw(cur,o.pw);save();closeModal();toast('Password changed');
+  });
+}
+function removeUser(id){
+  if(!needOwner())return;
+  const u=db.users.find(x=>x.id===id);if(!u||u.role==='owner')return;
+  askConfirm(`Remove ${u.name}? They will no longer be able to sign in. Their past sales stay on record.`,()=>{db.users=db.users.filter(x=>x.id!==id);save();render();toast('Staff member removed')},'Remove');
+}
+
 /* ---------- render ---------- */
 function render(){
   const v={dash:viewDash,sale:viewSale,orders:viewOrders,prod:viewProducts,serv:viewServices,cust:viewCustomers,vend:viewVendors,set:viewSettings}[view];
@@ -901,7 +1120,7 @@ function render(){
   if(view==='sale'){posGrid();posCart()}
   if(view==='set')checkPersist();
 }
-render();drawBanner();
+drawBanner();showAuth();
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
