@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Annie's Fashions and Design – POS</title>
-<meta name="theme-color" content="#1f5c57">
+<meta name="theme-color" content="#2f8f4e">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,20 +13,11 @@
 <meta name="apple-mobile-web-app-title" content="Annie's POS">
 <style>
 :root{
-  --bg:#eef0ec; --surface:#ffffff; --surface2:#e4e8e2; --ink:#1c2430; --muted:#5f6b76; --line:#d3d9d1;
-  --accent:#1f5c57; --accent-ink:#ffffff; --tape:#f0c43a; --tape-ink:#2b2305;
-  --ok:#217a47; --warn:#9a5b00; --bad:#b3261e;
-  --okbg:#dcf0e3; --warnbg:#fbeccd; --badbg:#f9dcd9; --infobg:#dbe7f3; --info:#24506f;
+  --bg:#eef7ea; --surface:#ffffff; --surface2:#e2f0dc; --ink:#1d2b22; --muted:#587061; --line:#cfe2c8;
+  --accent:#2f8f4e; --accent-ink:#ffffff; --grad:linear-gradient(135deg,#4cb36b,#2b8a4b); --tape:#f3c94a; --tape-ink:#33290a;
+  --ok:#1f7a45; --warn:#9a5b00; --bad:#b3261e;
+  --okbg:#d8f0de; --warnbg:#fcefcf; --badbg:#fadcd8; --infobg:#dcebf5; --info:#24506f;
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#12171c; --surface:#1a2128; --surface2:#232c35; --ink:#e9edf0; --muted:#97a3ad; --line:#2e3943;
-    --accent:#58b3a8; --accent-ink:#06201d; --tape:#e9bb2c; --tape-ink:#2b2305;
-    --ok:#6cc58f; --warn:#e6b25a; --bad:#f19088;
-    --okbg:#1c3427; --warnbg:#3a2e14; --badbg:#3d1f1d; --infobg:#1d3140; --info:#8fbbdc;
-    color-scheme: dark;
-  }
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -39,7 +30,7 @@ button{cursor:pointer}
 
 /* shell */
 .shell{display:grid;grid-template-columns:230px 1fr;min-height:100%}
-.side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side{background:linear-gradient(180deg,#e0f2d9 0%,#f6fbf3 60%,#ffffff 100%);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .brand{padding:20px 18px 14px}
 .brand .a{font-family:"Bodoni 72","Didot","Playfair Display",Georgia,serif;font-size:30px;font-style:italic;font-weight:600;line-height:1}
 .brand .b{font-size:12.5px;color:var(--muted);margin-top:4px;letter-spacing:.3px}
@@ -51,7 +42,7 @@ button{cursor:pointer}
 nav.menu{padding:10px;display:flex;flex-direction:column;gap:2px;overflow:auto}
 nav.menu button{display:flex;align-items:center;gap:10px;text-align:left;background:none;border:0;padding:10px 12px;border-radius:8px;color:var(--muted);font-weight:500}
 nav.menu button:hover{background:var(--surface2);color:var(--ink)}
-nav.menu button.on{background:var(--accent);color:var(--accent-ink)}
+nav.menu button.on{background:var(--grad);color:var(--accent-ink);box-shadow:0 2px 6px rgba(43,138,75,.28)}
 nav.menu svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .side .foot{margin-top:auto;padding:12px 16px;font-size:12px;color:var(--muted)}
 main{padding:24px clamp(14px,3vw,34px) 60px;min-width:0}
@@ -64,7 +55,7 @@ main{padding:24px clamp(14px,3vw,34px) 60px;min-width:0}
 /* controls */
 .btn{border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:8px;font-weight:600}
 .btn:hover{background:var(--surface2)}
-.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri{background:var(--grad);border-color:#2b8a4b;color:var(--accent-ink)}
 .btn.pri:hover{filter:brightness(1.08)}
 .btn.bad{color:var(--bad)}
 .btn.sm{padding:6px 10px;font-size:13px}
@@ -78,13 +69,13 @@ textarea{resize:vertical}
 .formgrid .full,.full{grid-column:1/-1}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
 .seg button,.seg label{border:0;background:none;padding:8px 16px;font-weight:600;color:var(--muted);cursor:pointer}
-.seg button.on{background:var(--ink);color:var(--bg)}
+.seg button.on{background:var(--grad);color:var(--accent-ink)}
 .seg.wide{display:flex}
 .seg.wide label{flex:1;text-align:center;display:flex;gap:8px;align-items:center;justify-content:center}
 .seg.wide label input{width:auto}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:13px;color:var(--muted)}
-.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.on{background:var(--grad);color:var(--accent-ink);border-color:#2b8a4b}
 
 /* lists */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px}
@@ -108,7 +99,8 @@ textarea{resize:vertical}
 
 /* dashboard */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px}
-.stat{padding:16px 18px}
+.stat{padding:16px 18px;border-top:3px solid var(--accent)}
+.stat .sub2{font-size:12.5px;color:var(--muted);margin-top:2px}
 .stat .n{font-family:"Bodoni 72","Didot",Georgia,serif;font-size:30px;font-weight:600;line-height:1.1}
 .stat .l{color:var(--muted);font-size:13px;margin-top:4px}
 .stat.alert .n{color:var(--bad)}
@@ -198,6 +190,9 @@ body.locked .shell{display:none}
   nav.menu{flex-direction:row;padding:6px;gap:2px;width:100%;overflow-x:auto}
   nav.menu button{flex-direction:column;gap:2px;font-size:11px;padding:6px 10px;min-width:64px;align-items:center;text-align:center}
   main{padding-bottom:100px}
+  .stats{grid-template-columns:1fr 1fr;gap:10px}
+  .stat{padding:12px 14px}
+  .stat .n{font-size:22px}
   .mobilebrand{display:block!important}
   .formgrid{grid-template-columns:1fr}
 }
@@ -390,11 +385,31 @@ function formSubmit(e){
 const vendorOpts=()=>[['','— none —'],...db.vendors.map(v=>[v.id,v.name])];
 
 /* ---------- DASHBOARD ---------- */
+let dashRange='today',dashFrom='',dashTo='';
+function dashBounds(){
+  const t=today();
+  if(dashRange==='today')return [t,t,'Today'];
+  if(dashRange==='yesterday'){const y=addDays(t,-1);return [y,y,'Yesterday']}
+  if(dashRange==='week'){const dow=(parseD(t).getDay()+6)%7;return [addDays(t,-dow),t,'This week']}
+  if(dashRange==='month')return [t.slice(0,8)+'01',t,'This month'];
+  if(dashRange==='last30')return [addDays(t,-29),t,'Last 30 days'];
+  const f=dashFrom||t,e=dashTo||t;
+  return f<=e?[f,e,'Selected dates']:[e,f,'Selected dates'];
+}
+function setRange(r){dashRange=r;render()}
+function setCustom(which,v){if(which==='f')dashFrom=v;else dashTo=v;dashRange='custom';render()}
 function viewDash(){
   const t=today();
+  const [from,to,rlabel]=dashBounds();
+  const inR=d=>d>=from&&d<=to;
+  const rangeText=from===to?fmtDate(from):`${fmtDate(from)} to ${fmtDate(to)}`;
   const act=db.orders.filter(o=>o.status!=='Cancelled');
-  const collected=round2(db.orders.flatMap(o=>o.payments).filter(p=>p.date===t).reduce((a,p)=>a+p.amount,0));
-  const salesToday=round2(act.filter(o=>o.date===t).reduce((a,o)=>a+o.total,0));
+  const collected=round2(db.orders.flatMap(o=>o.payments).filter(p=>inR(p.date)).reduce((a,p)=>a+p.amount,0));
+  const ordersIn=act.filter(o=>inR(o.date));
+  const salesRange=round2(ordersIn.reduce((a,o)=>a+o.total,0));
+  const stockUnits=db.products.reduce((a,p)=>a+Math.max(0,p.stock),0);
+  const stockValue=round2(db.products.reduce((a,p)=>a+Math.max(0,p.stock)*(p.cost||0),0));
+  const chip=(k,l)=>`<button class="chip ${dashRange===k?'on':''}" onclick="setRange('${k}')">${l}</button>`;
   const owed=round2(act.reduce((a,o)=>a+Math.max(0,balOf(o)),0));
   const overdue=act.filter(isOverdue);
   const open=act.filter(o=>['Pending','In progress'].includes(o.status));
@@ -404,9 +419,13 @@ function viewDash(){
     .filter(x=>x.s.due<=addDays(t,7)).sort((a,b)=>a.s.due.localeCompare(b.s.due)).slice(0,8);
   const rowOrder=o=>`<div class="item click" onclick="orderDetail('${o.id}')"><div class="grow"><div class="t1">${esc(custName(o.customerId))}</div><div class="t2">#${esc(o.no)} · due ${fmtDate(o.due)}</div></div><div class="right mono">${money(balOf(o))}<div class="t2">balance</div></div></div>`;
   return backupNag()+pageHead('Dashboard',new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),'<button class="btn pri" onclick="go(\'sale\')">New sale</button>')+
-  `<div class="stats">
-    <div class="card stat"><div class="n mono">${money(collected)}</div><div class="l">Collected today</div></div>
-    <div class="card stat"><div class="n mono">${money(salesToday)}</div><div class="l">Sales booked today</div></div>
+  `<div class="chips" style="margin-bottom:10px">${chip('today','Today')}${chip('yesterday','Yesterday')}${chip('week','This week')}${chip('month','This month')}${chip('last30','Last 30 days')}${chip('custom','Pick dates')}</div>
+  ${dashRange==='custom'?`<div class="formgrid" style="max-width:420px;margin-bottom:10px"><label class="fld"><span>From</span><input type="date" value="${dashFrom||t}" max="${t}" onchange="setCustom('f',this.value)"></label><label class="fld"><span>To</span><input type="date" value="${dashTo||t}" max="${t}" onchange="setCustom('t',this.value)"></label></div>`:''}
+  <div class="t2" style="margin-bottom:10px">Showing ${esc(rlabel.toLowerCase())}: ${rangeText}</div>
+  <div class="stats">
+    <div class="card stat"><div class="n mono">${money(salesRange)}</div><div class="l">Sales · ${esc(rlabel.toLowerCase())}</div><div class="sub2">${ordersIn.length} order${ordersIn.length===1?'':'s'}</div></div>
+    <div class="card stat"><div class="n mono">${money(collected)}</div><div class="l">Money collected</div><div class="sub2">Payments received in this period</div></div>
+    <div class="card stat"><div class="n mono">${stockUnits.toLocaleString()}</div><div class="l">Total stock (products)</div><div class="sub2">${db.products.length} product${db.products.length===1?'':'s'} · ${money(stockValue)} at cost</div></div>
     <div class="card stat"><div class="n mono">${money(owed)}</div><div class="l">Owed by customers</div></div>
     <div class="card stat ${overdue.length?'alert':''}"><div class="n">${overdue.length}</div><div class="l">Orders with overdue installments</div></div>
   </div>
